@@ -97,9 +97,9 @@ async def test_read_pbmsg_safe_readexactly_fails():
 
     event = anyio.create_event()
 
-    async with anyio.create_task_group() as tg, await anyio.create_tcp_server(
-        port=port, interface=host
-    ) as server:
+    async with anyio.create_task_group() as tg, await anyio.create_tcp_listener(
+        local_host=host, local_port = port
+    ) as listener:
 
         async def handler_stream(stream):
             pb_msg = p2pd_pb.Response()
@@ -109,18 +109,18 @@ async def test_read_pbmsg_safe_readexactly_fails():
                 await event.set()
 
         async def server_serve():
-            async for client in server.accept_connections():
-                await tg.spawn(handler_stream, client)
+            async with listener:
+                async for client in listener:
+                    await tg.spawn(handler_stream, client)
 
         await tg.spawn(server_serve)
 
-        stream = await anyio.connect_tcp(address=host, port=port)
+        stream = await anyio.connect_tcp(host, port)
         # close the stream. Therefore the handler should receive EOF, and then `readexactly` raises.
         await stream.close()
 
         async with anyio.fail_after(5):
             await event.wait()
-
 
 @pytest.mark.parametrize(
     "pb_msg, msg_bytes",

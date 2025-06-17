@@ -13,8 +13,8 @@ with open("p2pclient/_version.py") as f:
 extras_require = {
     "test": [
         "mypy>=0.761,<1.0",
-        "pytest-cov>=2.7.1,<3.0.0",
-        "pytest>=4.6.3,<5.0.0",
+        "pytest-cov>=2.12.0,<5.0.0",
+        "pytest>=6.2.0,<8.0.0",
         "types-protobuf",
     ],
     "lint": [
@@ -42,7 +42,7 @@ setuptools.setup(
     url="https://github.com/mhchia/py-libp2p-daemon-bindings",
     packages=setuptools.find_packages(exclude=["tests", "tests.*"]),
     install_requires=[
-        "anyio>=1.2.2,<2.0.0",
+        "anyio>=3.0.0,<4.0.0",
         "async-exit-stack>=1.0.1,<2.0.0",
         "async-generator>=1.10,<2.0",
         "base58>=1.0.3",
