@@ -119,7 +119,7 @@ class ControlClient:
         async with anyio.create_task_group() as task_group:
             self.task_group = task_group
             async with self.listener:
-                await task_group.spawn(self._accept_new_connections, self.listener)
+                await task_group.start_task(self._accept_new_connections, self.listener)
                 self.logger.info(
                     "DaemonConnector %s starts listening to %s", self, self.listen_maddr
                 )

@@ -18,7 +18,7 @@ async def write_pbmsg(stream: anyio.abc.SocketStream, pbmsg: PBMessage) -> None:
     size = pbmsg.ByteSize()
     await write_unsigned_varint(stream, size)
     msg_bytes: bytes = pbmsg.SerializeToString()
-    await stream.send_all(msg_bytes)
+    await stream.send(msg_bytes)
 
 
 async def read_pbmsg_safe(stream: anyio.abc.SocketStream, pbmsg: PBMessage) -> None:

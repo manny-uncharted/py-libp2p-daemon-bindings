@@ -264,7 +264,7 @@ async def test_client_stream_handler_success(p2pcs):
     # wait until the handler function starts blocking waiting for the data
     # because we haven't sent the data, we know the handler function must still blocking waiting.
     # get the task of the protocol handler
-    await stream.send_all(bytes_to_send)
+    await stream.send(bytes_to_send)
 
     # wait for the handler to finish
     await stream.close()
@@ -290,7 +290,7 @@ async def test_client_stream_handler_success(p2pcs):
 
     # we know at this moment the handler must still blocking wait
 
-    await another_stream.send_all(another_bytes_to_send)
+    await another_stream.send(another_bytes_to_send)
 
     await another_stream.close()
 

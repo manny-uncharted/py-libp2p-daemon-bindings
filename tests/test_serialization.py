@@ -28,7 +28,7 @@ class MockReaderWriter(io.BytesIO):
         await anyio.sleep(0)
         return self.read(n)
 
-    async def send_all(self, b):
+    async def send(self, b):
         await anyio.sleep(0)
         return self.write(b)
 

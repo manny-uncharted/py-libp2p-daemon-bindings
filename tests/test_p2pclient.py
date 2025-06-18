@@ -18,7 +18,7 @@ class MockReaderWriter(io.BytesIO):
         await anyio.sleep(0)
         return self.read(n)
 
-    async def send_all(self, b):
+    async def send(self, b):
         await anyio.sleep(0)
         return self.write(b)
 
@@ -111,9 +111,9 @@ async def test_read_pbmsg_safe_readexactly_fails():
         async def server_serve():
             async with listener:
                 async for client in listener:
-                    await tg.spawn(handler_stream, client)
+                    await tg.start_task(handler_stream, client)
 
-        await tg.spawn(server_serve)
+        await tg.start_task(server_serve)
 
         stream = await anyio.connect_tcp(host, port)
         # close the stream. Therefore the handler should receive EOF, and then `readexactly` raises.

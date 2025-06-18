@@ -17,7 +17,7 @@ async def write_unsigned_varint(
         if integer != 0:
             value |= 0x80
         byte = value.to_bytes(1, "big")
-        await stream.send_all(byte)
+        await stream.send(byte)
         if integer == 0:
             break
 
