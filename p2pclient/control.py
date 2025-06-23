@@ -56,7 +56,7 @@ class DaemonConnector:
         elif proto_code == protocols.P_IP4:
             host = self.control_maddr.value_for_protocol(protocols.P_IP4)
             port = int(self.control_maddr.value_for_protocol(protocols.P_TCP))
-            return await anyio.connect_tcp(address=host, port=port)
+            return await anyio.connect_tcp(address = host, port = port)
         else:
             raise ValueError(
                 f"protocol not supported: protocol={protocols.protocol_with_code(proto_code)}"
@@ -67,7 +67,8 @@ class ControlClient:
     listen_maddr: Multiaddr
     daemon_connector: DaemonConnector
     handlers: Dict[str, StreamHandler]
-    listener: anyio.abc.SocketStreamServer = None
+    listener_tcp: anyio.abc.SocketListener = None
+    listener_unix : anyio.abc.SocketListener = None
     task_group: anyio.abc.TaskGroup = None
     logger = logging.getLogger("p2pclient.ControlClient")
 
@@ -81,10 +82,10 @@ class ControlClient:
         self.handlers = {}
 
     async def _accept_new_connections(
-        self, server: anyio.abc.SocketStreamServer
+        self, listener: anyio.abc.SocketListener
     ) -> None:
-        async for client in server.accept_connections():
-            await self.task_group.spawn(self._dispatcher, client)
+        async for client in listener:
+            self.task_group.start_soon(self._dispatcher, client)
 
     async def _dispatcher(self, stream: anyio.abc.SocketStream) -> None:
         pb_stream_info = p2pd_pb.StreamInfo()
@@ -101,16 +102,16 @@ class ControlClient:
 
     @asynccontextmanager
     async def listen(self) -> AsyncIterator["ControlClient"]:
-        if self.listener is not None:
+        if self.listener_tcp is not None or self.listener_unix is not None:
             raise ControlFailure("Listener is already listening")
         proto_code = parse_conn_protocol(self.listen_maddr)
         if proto_code == protocols.P_UNIX:
             listen_path = self.listen_maddr.value_for_protocol(protocols.P_UNIX)
-            self.listener = await anyio.create_unix_server(listen_path)
+            self.listener_unix = await anyio.create_unix_listener(listen_path)
         elif proto_code == protocols.P_IP4:
             host = self.listen_maddr.value_for_protocol(protocols.P_IP4)
             port = int(self.listen_maddr.value_for_protocol(protocols.P_TCP))
-            self.listener = await anyio.create_tcp_server(port=port, interface=host)
+            self.listener_tcp = await anyio.create_tcp_listener(local_host=host, local_port=port)
         else:
             raise ValueError(
                 f"protocol not supported: protocol={protocols.protocol_with_code(proto_code)}"
@@ -118,7 +119,7 @@ class ControlClient:
         async with anyio.create_task_group() as task_group:
             self.task_group = task_group
             async with self.listener:
-                await task_group.spawn(self._accept_new_connections, self.listener)
+                await task_group.start_task(self._accept_new_connections, self.listener)
                 self.logger.info(
                     "DaemonConnector %s starts listening to %s", self, self.listen_maddr
                 )
