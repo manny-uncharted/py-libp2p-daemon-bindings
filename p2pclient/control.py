@@ -3,8 +3,9 @@ from typing import AsyncIterator, Awaitable, Callable, Dict, Iterable, Sequence,
 
 import anyio
 from async_generator import asynccontextmanager
-from p2pclient.libp2p_stubs.peer.id import ID
 from multiaddr import Multiaddr, protocols
+
+from p2pclient.libp2p_stubs.peer.id import ID
 
 from . import config
 from .datastructures import PeerInfo, StreamInfo
@@ -56,7 +57,7 @@ class DaemonConnector:
         elif proto_code == protocols.P_IP4:
             host = self.control_maddr.value_for_protocol(protocols.P_IP4)
             port = int(self.control_maddr.value_for_protocol(protocols.P_TCP))
-            return await anyio.connect_tcp(address = host, port = port)
+            return await anyio.connect_tcp(address=host, port=port)
         else:
             raise ValueError(
                 f"protocol not supported: protocol={protocols.protocol_with_code(proto_code)}"
@@ -68,7 +69,7 @@ class ControlClient:
     daemon_connector: DaemonConnector
     handlers: Dict[str, StreamHandler]
     listener_tcp: anyio.abc.SocketListener = None
-    listener_unix : anyio.abc.SocketListener = None
+    listener_unix: anyio.abc.SocketListener = None
     task_group: anyio.abc.TaskGroup = None
     logger = logging.getLogger("p2pclient.ControlClient")
 
@@ -81,9 +82,7 @@ class ControlClient:
         self.daemon_connector = daemon_connector
         self.handlers = {}
 
-    async def _accept_new_connections(
-        self, listener: anyio.abc.SocketListener
-    ) -> None:
+    async def _accept_new_connections(self, listener: anyio.abc.SocketListener) -> None:
         async for client in listener:
             self.task_group.start_soon(self._dispatcher, client)
 
@@ -111,7 +110,9 @@ class ControlClient:
         elif proto_code == protocols.P_IP4:
             host = self.listen_maddr.value_for_protocol(protocols.P_IP4)
             port = int(self.listen_maddr.value_for_protocol(protocols.P_TCP))
-            self.listener_tcp = await anyio.create_tcp_listener(local_host=host, local_port=port)
+            self.listener_tcp = await anyio.create_tcp_listener(
+                local_host=host, local_port=port
+            )
         else:
             raise ValueError(
                 f"protocol not supported: protocol={protocols.protocol_with_code(proto_code)}"
@@ -174,7 +175,7 @@ class ControlClient:
         raise_if_failed(resp)
 
         peers = tuple(PeerInfo.from_pb(pinfo) for pinfo in resp.peers)
-        return peers    # type: ignore
+        return peers  # type: ignore
 
     async def disconnect(self, peer_id: ID) -> None:
         disconnect_req = p2pd_pb.DisconnectRequest(peer=peer_id.to_bytes())

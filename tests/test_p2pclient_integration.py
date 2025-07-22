@@ -1,15 +1,15 @@
 import functools
 
 import anyio
-import multihash
-import pytest
 from async_exit_stack import AsyncExitStack
 from multiaddr import Multiaddr
+import multihash
+import pytest
 
-import p2pclient.pb.p2pd_pb2 as p2pd_pb
+from p2pclient.daemon import make_p2pd_pair_ip4, make_p2pd_pair_unix, try_until_success
 from p2pclient.exceptions import ControlFailure
 from p2pclient.libp2p_stubs.peer.id import ID
-from p2pclient.daemon import make_p2pd_pair_unix, make_p2pd_pair_ip4, try_until_success
+import p2pclient.pb.p2pd_pb2 as p2pd_pb
 from p2pclient.utils import read_pbmsg_safe
 
 TIMEOUT_DURATION = 30  # seconds

@@ -12,15 +12,15 @@ with open("p2pclient/_version.py") as f:
 
 extras_require = {
     "test": [
-        "mypy>=0.761,<1.0",
+        "mypy>=1.17.0",
         "pytest-cov>=2.12.0,<5.0.0",
         "pytest>=6.2.0,<8.0.0",
         "types-protobuf",
     ],
     "lint": [
-        "black>=19.3b0",
-        "flake8>=3.7.7,<4.0.0",
-        "isort>=4.3.21",
+        "black>=25.1.0",
+        "flake8>=7.3.0",
+        "isort>=6.0.1",
         "mypy-protobuf>=1.16",
     ],
     "dev": ["tox>=3.13.2,<4.0.0", "wheel"],

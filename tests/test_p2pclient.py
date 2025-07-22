@@ -98,7 +98,7 @@ async def test_read_pbmsg_safe_readexactly_fails():
     event = anyio.create_event()
 
     async with anyio.create_task_group() as tg, await anyio.create_tcp_listener(
-        local_host=host, local_port = port
+        local_host=host, local_port=port
     ) as listener:
 
         async def handler_stream(stream):
@@ -121,6 +121,7 @@ async def test_read_pbmsg_safe_readexactly_fails():
 
         async with anyio.fail_after(5):
             await event.wait()
+
 
 @pytest.mark.parametrize(
     "pb_msg, msg_bytes",

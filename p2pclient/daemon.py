@@ -1,6 +1,7 @@
 """
-The classes in this file allow to launch the JS or Go daemon as a subprocess. This provides a simple system
-for application maintainers to write tests using one or more instances of the P2P daemon.
+The classes in this file allow to launch the JS or Go daemon as a subprocess.
+This provides a simple system for application maintainers to write tests
+using one or more instances of the P2P daemon.
 """
 
 # Used for the annotation of Popen, which is not generic before Python 3.9
@@ -10,8 +11,17 @@ import abc
 import os
 import subprocess
 import time
+from typing import (
+    AsyncIterator,
+    Awaitable,
+    BinaryIO,
+    Callable,
+    List,
+    NamedTuple,
+    Optional,
+    Tuple,
+)
 import uuid
-from typing import AsyncIterator, Awaitable, Callable, List, NamedTuple, Tuple
 
 import anyio
 from async_generator import asynccontextmanager
@@ -19,7 +29,6 @@ from multiaddr import Multiaddr, protocols
 
 from p2pclient.p2pclient import Client
 from p2pclient.utils import get_unused_tcp_port
-from typing import BinaryIO, Optional
 
 TIMEOUT_DURATION = 30  # seconds
 
@@ -76,10 +85,12 @@ class Daemon(abc.ABC):
 
     @abc.abstractmethod
     def _make_command_line_options(self) -> List[str]:
+        """Return the command line options to launch the daemon."""
         ...
 
     @abc.abstractmethod
     def _terminate(self) -> None:
+        """Terminate the daemon."""
         ...
 
     def _run(self, daemon_executable: str) -> None:
@@ -153,8 +164,9 @@ class JsDaemon(Daemon):
 
         return cmd_list
 
-    # TODO: investigate why the JS daemon needs to be killed instead of terminating gracefully. Some tests
-    #       (ex: test_client_stream_open_failure) freeze after completion if we use terminate.
+    # TODO: investigate why the JS daemon needs to be killed instead of terminating gracefully.
+    # Some tests
+    #  (ex: test_client_stream_open_failure) freeze after completion if we use terminate.
     def _terminate(self) -> None:
         self.proc_daemon.kill()
 

@@ -7,14 +7,21 @@ pyis = $(p2pd_pbs:.proto=_pb2.pyi)
 all: protobufs
 
 format:
-	black p2pclient/ tests/ setup.py
-	isort --recursive p2pclient tests setup.py
+	@echo "➡️  Running code formatters…"
+	black p2pclient tests setup.py
+	isort p2pclient tests setup.py
 
 lint:
-	black --check p2pclient/ tests/ setup.py
-	isort --recursive --check-only p2pclient tests setup.py
-	flake8 p2pclient/ tests/ setup.py
+	@echo "🔍  Checking code style & quality…"
+	black --check p2pclient tests setup.py
+	isort --check-only p2pclient tests setup.py
+	flake8 p2pclient tests setup.py
 	mypy -p p2pclient --config-file mypy.ini
+
+
+precommit:
+	@echo "🔌  Running pre‑commit hooks…"
+	pre-commit run --all-files
 
 protobufs: $(pys)
 
@@ -28,7 +35,7 @@ package:
 	# create a wheel
 	python setup.py bdist_wheel
 
-.PHONY: clean
+.PHONY: all format lint precommit protobufs package clean
 
 clean:
 	rm $(pys) $(pyis)

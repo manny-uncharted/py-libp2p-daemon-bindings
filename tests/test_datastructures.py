@@ -1,8 +1,8 @@
-from p2pclient.libp2p_stubs.peer.id import ID
 from multiaddr import Multiaddr
 import pytest
 
 from p2pclient.datastructures import PeerInfo, StreamInfo
+from p2pclient.libp2p_stubs.peer.id import ID
 import p2pclient.pb.p2pd_pb2 as p2pd_pb
 
 
