@@ -1,14 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
+import re
 
 import setuptools
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-# Retrieve the version of the package in __version__ without importing it
-with open("p2pclient/_version.py") as f:
-    exec(f.read())
+
+def get_version() -> str:
+    path = os.path.join(os.path.dirname(__file__), "p2pclient/__init__.py")
+    with open(path, "r") as f:
+        version_file = f.read()
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
 
 extras_require = {
     "test": [
@@ -33,7 +42,7 @@ extras_require["dev"] = (
 
 setuptools.setup(
     name="p2pclient",
-    version=__version__,
+    version=get_version(),
     author="Kevin Mai-Hsuan Chia",
     author_email="kevin.mh.chia@gmail.com",
     description="The libp2p daemon bindings for Python",

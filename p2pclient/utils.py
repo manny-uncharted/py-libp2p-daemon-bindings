@@ -1,5 +1,5 @@
-from contextlib import closing
 import socket
+from contextlib import closing
 
 import anyio
 from google.protobuf.message import Message as PBMessage

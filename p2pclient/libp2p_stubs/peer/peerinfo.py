@@ -15,9 +15,9 @@ class PeerInfo:
 
     def __eq__(self, other: Any) -> bool:
         return (
-            isinstance(other, PeerInfo)
-            and self.peer_id == other.peer_id
-            and self.addrs == other.addrs
+            isinstance(other, PeerInfo)  # noqa: W503
+            and self.peer_id == other.peer_id  # noqa: W503
+            and self.addrs == other.addrs  # noqa: W503
         )
 
 

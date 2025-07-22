@@ -46,7 +46,7 @@ def test_info_from_p2p_addr_valid():
     info = info_from_p2p_addr(m_addr)
     assert (
         info.peer_id.pretty()
-        == "3YgLAeMKSAPcGqZkAt8mREqhQXmJT8SN8VCMN4T6ih4GNX9wvK8mWJnWZ1qA2mLdCQ"
+        == "3YgLAeMKSAPcGqZkAt8mREqhQXmJT8SN8VCMN4T6ih4GNX9wvK8mWJnWZ1qA2mLdCQ"  # noqa: W503
     )
     assert len(info.addrs) == 1
     assert str(info.addrs[0]) == "/ip4/127.0.0.1/tcp/8000"

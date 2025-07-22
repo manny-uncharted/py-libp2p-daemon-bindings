@@ -1,15 +1,15 @@
 import functools
 
 import anyio
-from async_exit_stack import AsyncExitStack
-from multiaddr import Multiaddr
 import multihash
 import pytest
+from async_exit_stack import AsyncExitStack
+from multiaddr import Multiaddr
 
+import p2pclient.pb.p2pd_pb2 as p2pd_pb
 from p2pclient.daemon import make_p2pd_pair_ip4, make_p2pd_pair_unix, try_until_success
 from p2pclient.exceptions import ControlFailure
 from p2pclient.libp2p_stubs.peer.id import ID
-import p2pclient.pb.p2pd_pb2 as p2pd_pb
 from p2pclient.utils import read_pbmsg_safe
 
 TIMEOUT_DURATION = 30  # seconds
@@ -182,7 +182,8 @@ async def test_client_disconnect(peer_id_random, p2pcs):
     assert len(await p2pcs[1].list_peers()) == 0
 
 
-# the current code complains because the multiaddr returned by the daemon contains its /p2p/ address.
+# the current code complains because the multiaddr
+# returned by the daemon contains its /p2p/ address.
 @pytest.mark.jsp2pd_probable_bug
 @pytest.mark.parametrize("enable_control", (True,))
 @pytest.mark.anyio
@@ -248,7 +249,7 @@ async def test_client_stream_handler_success(p2pcs):
     event_handler_finished = anyio.create_event()
 
     async def handle_proto(stream_info, stream):
-        nonlocal event_handler_finished
+        nonlocal event_handler_finished  # noqa: F824
         bytes_received = await stream.receive_exactly(len(bytes_to_send))
         assert bytes_received == bytes_to_send
         await event_handler_finished.set()

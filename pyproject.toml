@@ -19,3 +19,19 @@ exclude = '''
   | \w*_pb2\w*\.py  # pb2 files
 )
 '''
+
+[tool.flake8]
+max-line-length = 100
+extend-ignore = ["E203", "W503"]
+exclude = [
+  ".git",
+  "__pycache__",
+  "build",
+  "dist",
+  "p2pclient/libp2p_stubs/crypto/pb/*",
+  "*_pb2.py",
+]
+
+[tool.isort]
+profile = "black"
+skip_glob = ["p2pclient/libp2p_stubs/crypto/pb/*", "*_pb2.py"]

@@ -11,6 +11,7 @@ import abc
 import os
 import subprocess
 import time
+import uuid
 from typing import (
     AsyncIterator,
     Awaitable,
@@ -21,7 +22,6 @@ from typing import (
     Optional,
     Tuple,
 )
-import uuid
 
 import anyio
 from async_generator import asynccontextmanager
