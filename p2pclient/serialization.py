@@ -3,26 +3,6 @@ from anyio.abc import SocketStream
 DEFAULT_MAX_BITS: int = 64
 
 
-async def _receive_exactly(
-    stream: SocketStream,
-    nbytes: int,
-) -> bytes:
-    """
-    Read *exactly* ``nbytes`` from ``stream``.
-    `anyio.abc.SocketStream` only exposes ``receive()``, which can return fewer
-    bytes than requested, so we loop until we’ve accumulated the full amount.
-    """
-    buffer = bytearray()
-    while len(buffer) < nbytes:
-        chunk = await stream.receive(nbytes - len(buffer))
-        if not chunk:
-            raise EOFError(
-                f"expected {nbytes} bytes, received {len(buffer)} before EOF"
-            )
-        buffer.extend(chunk)
-    return bytes(buffer)
-
-
 async def write_unsigned_varint(
     stream: SocketStream,
     integer: int,
@@ -53,8 +33,7 @@ async def read_unsigned_varint(
     result: int = 0
     has_next: bool = True
     while has_next:
-        # data = await stream.receive_exactly(1)
-        data = await _receive_exactly(stream, 1)
+        data = await stream.receive_exactly(1)
         c = data[0]
         value = c & 0x7F
         result |= value << (iteration * 7)
