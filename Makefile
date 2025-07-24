@@ -6,6 +6,10 @@ pyis = $(p2pd_pbs:.proto=_pb2.pyi)
 # Set default to `protobufs`, otherwise `format` is called when typing only `make`
 all: protobufs
 
+dev:
+	@echo "🔌  Installing development dependencies…"
+	pip install -e '.[dev]'
+
 format:
 	@echo "➡️  Running code formatters…"
 	black p2pclient tests setup.py

@@ -1,12 +1,74 @@
+# This file contains configuration for build tools, linters, and formatters.
+
+[build-system]
+# Specifies the build backend for pip to use.
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+# All static package metadata is defined here.
+name = "p2pclient"
+version = "0.3.1" # Static version, fixes the "Unable to find version string" error.
+authors = [
+    { name = "Kevin Mai-Hsuan Chia", email = "kevin.mh.chia@gmail.com" }
+]
+description = "The libp2p daemon bindings for Python"
+readme = "README.md"
+license = { text = "MIT License" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3 :: Only",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "anyio>=4,<5",
+    "async-exit-stack>=1.0.1,<2.0.0",
+    "async-generator>=1.10,<2.0",
+    "base58>=1.0.3",
+    "multiaddr>=0.0.8,<0.1.0",
+    "protobuf>=3.9.0",
+    "pycryptodome>=3.0.0,<4.0.0",
+    "pymultihash>=0.8.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/mhchia/py-libp2p-daemon-bindings"
+
+[project.optional-dependencies]
+test = [
+    "mypy>=1.17.0",
+    "pytest-cov>=2.12.0,<5.0.0",
+    "pytest>=6.2.0,<8.0.0",
+    "pytest-trio>=0.8.0",
+    "types-protobuf",
+    "trio<0.25",
+
+]
+lint = [
+    "black>=25.1.0",
+    "flake8>=7.3.0",
+    "isort>=6.0.1",
+    "mypy-protobuf>=1.16",
+]
+dev = [
+    "tox>=3.13.2,<4.0.0",
+    "wheel",
+    "p2pclient[test,lint]", # Installs both test and lint dependencies
+]
+
+
 [tool.black]
+# Configuration for the Black code formatter.
 target_version = ['py37']
 include = '\.pyi?$'
 exclude = '''
-
 (
   /(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
+      \.eggs
+    | \.git
     | \.hg
     | \.mypy_cache
     | \.tox
@@ -16,22 +78,24 @@ exclude = '''
     | build
     | dist
   )/
-  | \w*_pb2\w*\.py  # pb2 files
+  | \w*_pb2\w*\.py  # Exclude auto-generated protobuf files
 )
 '''
 
 [tool.flake8]
+# Configuration for the Flake8 linter.
 max-line-length = 100
 extend-ignore = ["E203", "W503"]
 exclude = [
-  ".git",
-  "__pycache__",
-  "build",
-  "dist",
-  "p2pclient/libp2p_stubs/crypto/pb/*",
-  "*_pb2.py",
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    "p2pclient/libp2p_stubs/crypto/pb/*",
+    "*_pb2.py",
 ]
 
 [tool.isort]
+# Configuration for the isort import sorter.
 profile = "black"
 skip_glob = ["p2pclient/libp2p_stubs/crypto/pb/*", "*_pb2.py"]

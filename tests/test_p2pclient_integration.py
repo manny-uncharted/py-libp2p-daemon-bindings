@@ -246,7 +246,7 @@ async def test_client_stream_handler_success(p2pcs):
     proto = "protocol123"
     bytes_to_send = b"yoyoyoyoyog"
     # event for this test function to wait until the handler function receiving the incoming data
-    event_handler_finished = anyio.create_event()
+    event_handler_finished = anyio.Event()
 
     async def handle_proto(stream_info, stream):
         nonlocal event_handler_finished  # noqa: F824
