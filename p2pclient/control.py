@@ -95,7 +95,11 @@ class ControlClient:
     async def _accept_new_connections(
         self, listener: anyio.abc.Listener[anyio.abc.SocketStream]
     ) -> None:
-        await listener.serve(self._dispatcher)
+        try:
+            await listener.serve(self._dispatcher)
+        except anyio.ClosedResourceError:
+            # Expected when the listener is closed during teardown
+            pass
 
     async def _dispatcher(self, stream: anyio.abc.SocketStream) -> None:
         pb_stream_info = p2pd_pb.StreamInfo()
@@ -130,22 +134,21 @@ class ControlClient:
             raise ValueError(
                 f"protocol not supported: protocol={protocols.protocol_with_code(proto_code)}"
             )
-        async with anyio.create_task_group() as task_group:
-            self.task_group = task_group
-            async with self.listener:
-                task_group.start_soon(self._accept_new_connections, self.listener)
-                self.logger.info(
-                    "DaemonConnector %s starts listening to %s", self, self.listen_maddr
-                )
-                yield self
+        
+        try:
+            async with anyio.create_task_group() as task_group:
+                self.task_group = task_group
+                async with self.listener:
+                    task_group.start_soon(self._accept_new_connections, self.listener)
+                    self.logger.info(
+                        "DaemonConnector %s starts listening to %s", self, self.listen_maddr
+                    )
+                    yield self
+                # Listener is closed before task_group exits to prevent ClosedResourceError
+        finally:
             self.listener = None
-            await self.close()
             self.task_group = None
         self.logger.info("DaemonConnector %s closed", self)
-
-    async def close(self) -> None:
-        if self.task_group is not None:
-            self.task_group.cancel_scope.cancel()
 
     async def identify(self) -> Tuple[ID, Tuple[Multiaddr, ...]]:
         stream = await self.daemon_connector.open_connection()
