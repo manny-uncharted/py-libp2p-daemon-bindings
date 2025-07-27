@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 .vscode/
+go-libp2p-daemon/
 
 # C extensions
 *.so
