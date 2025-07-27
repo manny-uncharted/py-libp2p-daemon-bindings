@@ -12,6 +12,29 @@ from p2pclient.exceptions import ControlFailure
 from p2pclient.libp2p_stubs.peer.id import ID
 from p2pclient.utils import read_pbmsg_safe
 
+
+async def _stream_receive_exactly(stream, n: int) -> bytes:
+    """Helper function to receive exactly n bytes from a stream using anyio 4.x API"""
+    from anyio.streams.buffered import BufferedByteReceiveStream
+    
+    # Check if stream already has receive_exactly method
+    if hasattr(stream, 'receive_exactly'):
+        return await stream.receive_exactly(n)
+    
+    # Wrap with BufferedByteReceiveStream if it has receive method
+    if hasattr(stream, 'receive'):
+        buffered = BufferedByteReceiveStream(stream)
+        return await buffered.receive_exactly(n)
+    
+    # Fallback for mock streams
+    if hasattr(stream, 'read'):
+        data = stream.read(n)
+        if len(data) != n:
+            raise anyio.IncompleteRead()
+        return data
+    
+    raise TypeError(f"Stream {stream!r} has no compatible receive API")
+
 TIMEOUT_DURATION = 30  # seconds
 
 
@@ -194,8 +217,8 @@ async def test_client_stream_open_success(p2pcs):
     proto = "123"
 
     async def handle_proto(stream_info, stream):
-        with pytest.raises(anyio.exceptions.IncompleteRead):
-            await stream.receive_exactly(1)
+        with pytest.raises(anyio.IncompleteRead):
+            await _stream_receive_exactly(stream, 1)
 
     await p2pcs[1].stream_handler(proto, handle_proto)
 
@@ -204,7 +227,7 @@ async def test_client_stream_open_success(p2pcs):
     assert stream_info.peer_id == peer_id_1
     assert stream_info.addr in maddrs_1
     assert stream_info.proto == "123"
-    await stream.close()
+    await stream.aclose()
 
     # test case: open with multiple protocols
     stream_info, stream = await p2pcs[0].stream_open(
@@ -213,7 +236,7 @@ async def test_client_stream_open_success(p2pcs):
     assert stream_info.peer_id == peer_id_1
     assert stream_info.addr in maddrs_1
     assert stream_info.proto == "123"
-    await stream.close()
+    await stream.aclose()
 
 
 @pytest.mark.parametrize("enable_control", (True,))
@@ -250,9 +273,9 @@ async def test_client_stream_handler_success(p2pcs):
 
     async def handle_proto(stream_info, stream):
         nonlocal event_handler_finished  # noqa: F824
-        bytes_received = await stream.receive_exactly(len(bytes_to_send))
+        bytes_received = await _stream_receive_exactly(stream, len(bytes_to_send))
         assert bytes_received == bytes_to_send
-        await event_handler_finished.set()
+        event_handler_finished.set()
 
     await p2pcs[1].stream_handler(proto, handle_proto)
     assert proto in p2pcs[1].control.handlers
@@ -268,18 +291,18 @@ async def test_client_stream_handler_success(p2pcs):
     await stream.send(bytes_to_send)
 
     # wait for the handler to finish
-    await stream.close()
+    await stream.aclose()
 
     await event_handler_finished.wait()
 
     # test case: two streams to different handlers respectively
     another_proto = "another_protocol123"
     another_bytes_to_send = b"456"
-    event_another_proto = anyio.create_event()
+    event_another_proto = anyio.Event()
 
     async def handle_another_proto(stream_info, stream):
-        await event_another_proto.set()
-        bytes_received = await stream.receive_exactly(len(another_bytes_to_send))
+        event_another_proto.set()
+        bytes_received = await _stream_receive_exactly(stream, len(another_bytes_to_send))
         assert bytes_received == another_bytes_to_send
 
     await p2pcs[1].stream_handler(another_proto, handle_another_proto)
@@ -293,13 +316,13 @@ async def test_client_stream_handler_success(p2pcs):
 
     await another_stream.send(another_bytes_to_send)
 
-    await another_stream.close()
+    await another_stream.aclose()
 
     # test case: registering twice can override the previous registration
-    event_third = anyio.create_event()
+    event_third = anyio.Event()
 
     async def handler_third(stream_info, stream):
-        await event_third.set()
+        event_third.set()
 
     await p2pcs[1].stream_handler(another_proto, handler_third)
     assert another_proto in p2pcs[1].control.handlers
@@ -465,7 +488,7 @@ async def test_client_dht_search_value(p2pcs):
 
 
 # FIXME
-@pytest.mark.skip("Temporary skip the test since dht is not used often")
+@pytest.mark.skip(reason="Temporary skip the test since dht is not used often")
 @pytest.mark.parametrize("enable_control, enable_dht", ((True, True),))
 @pytest.mark.anyio
 async def test_client_dht_put_value(p2pcs):
@@ -540,7 +563,7 @@ async def test_client_connmgr_untag_peer(peer_id_random, p2pcs):
     await p2pcs[0].connmgr_untag_peer(peer_id_random, "123")
 
 
-@pytest.mark.skip("Skipped because automatic trim is not stable to test")
+@pytest.mark.skip(reason="Skipped because automatic trim is not stable to test")
 @pytest.mark.parametrize("enable_control, enable_connmgr", ((True, True),))
 @pytest.mark.anyio
 async def test_client_connmgr_trim_automatically_by_connmgr(p2pcs):
@@ -658,7 +681,7 @@ async def test_client_pubsub_subscribe(p2pcs):
     await read_pbmsg_safe(stream_2, pubsub_msg_2_0)
     assert ID(getattr(pubsub_msg_2_0, "from")) == peer_id_0
     # test case: unsubscribe by closing the stream
-    await stream_0.close()
+    await stream_0.aclose()
     await anyio.sleep(0)
     assert topic not in await p2pcs[0].pubsub_get_topics()
 

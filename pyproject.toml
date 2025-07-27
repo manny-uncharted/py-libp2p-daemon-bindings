@@ -19,10 +19,10 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3 :: Only",
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 dependencies = [
     "anyio>=4,<5",
     "async-exit-stack>=1.0.1,<2.0.0",
@@ -39,7 +39,7 @@ Homepage = "https://github.com/mhchia/py-libp2p-daemon-bindings"
 
 [project.optional-dependencies]
 test = [
-    "mypy>=1.17.0",
+    "mypy>=1.0.0",
     "pytest-cov>=2.12.0,<5.0.0",
     "pytest>=6.2.0,<8.0.0",
     "pytest-anyio>=0.0.0,<1.0.0",
@@ -62,7 +62,7 @@ dev = [
 
 [tool.black]
 # Configuration for the Black code formatter.
-target_version = ['py37']
+target_version = ['py38']
 include = '\.pyi?$'
 exclude = '''
 (
