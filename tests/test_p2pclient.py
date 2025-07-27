@@ -2,9 +2,9 @@ import io
 
 import anyio
 import pytest
+from anyio.abc import SocketAttribute
 from google.protobuf.message import EncodeError
 from multiaddr import Multiaddr, protocols
-from anyio.abc import SocketAttribute
 
 import p2pclient.pb.p2pd_pb2 as p2pd_pb
 from p2pclient import config
@@ -95,7 +95,6 @@ async def test_read_pbmsg_safe_valid(msg_bytes):
     assert pb_msg.SerializeToString() == msg_bytes
 
 
-
 @pytest.mark.anyio
 async def test_read_pbmsg_safe_readexactly_fails():
     host = "127.0.0.1"
@@ -131,7 +130,7 @@ async def test_read_pbmsg_safe_readexactly_fails():
 
         with anyio.fail_after(5):
             await event.wait()
-        
+
         # Cancel the server task to allow clean shutdown
         tg.cancel_scope.cancel()
 

@@ -1,5 +1,14 @@
 import logging
-from typing import AsyncIterator, Awaitable, Callable, Dict, Iterable, Sequence, Tuple
+from typing import (
+    AsyncIterator,
+    Awaitable,
+    Callable,
+    Dict,
+    Iterable,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
 import anyio
 from async_generator import asynccontextmanager
@@ -57,7 +66,7 @@ class DaemonConnector:
         elif proto_code == protocols.P_IP4:
             host = self.control_maddr.value_for_protocol(protocols.P_IP4)
             port = int(self.control_maddr.value_for_protocol(protocols.P_TCP))
-            return await anyio.connect_tcp(address=host, port=port)
+            return await anyio.connect_tcp(host, port)
         else:
             raise ValueError(
                 f"protocol not supported: protocol={protocols.protocol_with_code(proto_code)}"
@@ -68,9 +77,10 @@ class ControlClient:
     listen_maddr: Multiaddr
     daemon_connector: DaemonConnector
     handlers: Dict[str, StreamHandler]
-    listener_tcp: anyio.abc.SocketListener = None
-    listener_unix: anyio.abc.SocketListener = None
-    task_group: anyio.abc.TaskGroup = None
+    listener_tcp: Optional[anyio.abc.Listener[anyio.abc.SocketStream]] = None
+    listener_unix: Optional[anyio.abc.Listener[anyio.abc.SocketStream]] = None
+    listener: Optional[anyio.abc.Listener[anyio.abc.SocketStream]] = None
+    task_group: Optional[anyio.abc.TaskGroup] = None
     logger = logging.getLogger("p2pclient.ControlClient")
 
     def __init__(
@@ -82,9 +92,10 @@ class ControlClient:
         self.daemon_connector = daemon_connector
         self.handlers = {}
 
-    async def _accept_new_connections(self, listener: anyio.abc.SocketListener) -> None:
-        async for client in listener:
-            self.task_group.start_soon(self._dispatcher, client)
+    async def _accept_new_connections(
+        self, listener: anyio.abc.Listener[anyio.abc.SocketStream]
+    ) -> None:
+        await listener.serve(self._dispatcher)
 
     async def _dispatcher(self, stream: anyio.abc.SocketStream) -> None:
         pb_stream_info = p2pd_pb.StreamInfo()
@@ -95,7 +106,7 @@ class ControlClient:
             handler = self.handlers[stream_info.proto]
         except KeyError as e:
             # should never enter here... daemon should reject the stream for us.
-            await stream.close()
+            await stream.aclose()
             raise DispatchFailure(e)
         await handler(stream_info, stream)
 
@@ -107,12 +118,14 @@ class ControlClient:
         if proto_code == protocols.P_UNIX:
             listen_path = self.listen_maddr.value_for_protocol(protocols.P_UNIX)
             self.listener_unix = await anyio.create_unix_listener(listen_path)
+            self.listener = self.listener_unix
         elif proto_code == protocols.P_IP4:
             host = self.listen_maddr.value_for_protocol(protocols.P_IP4)
             port = int(self.listen_maddr.value_for_protocol(protocols.P_TCP))
             self.listener_tcp = await anyio.create_tcp_listener(
                 local_host=host, local_port=port
             )
+            self.listener = self.listener_tcp
         else:
             raise ValueError(
                 f"protocol not supported: protocol={protocols.protocol_with_code(proto_code)}"
@@ -120,7 +133,7 @@ class ControlClient:
         async with anyio.create_task_group() as task_group:
             self.task_group = task_group
             async with self.listener:
-                await task_group.start_task(self._accept_new_connections, self.listener)
+                task_group.start_soon(self._accept_new_connections, self.listener)
                 self.logger.info(
                     "DaemonConnector %s starts listening to %s", self, self.listen_maddr
                 )
@@ -131,7 +144,8 @@ class ControlClient:
         self.logger.info("DaemonConnector %s closed", self)
 
     async def close(self) -> None:
-        await self.task_group.cancel_scope.cancel()
+        if self.task_group is not None:
+            self.task_group.cancel_scope.cancel()
 
     async def identify(self) -> Tuple[ID, Tuple[Multiaddr, ...]]:
         stream = await self.daemon_connector.open_connection()
@@ -140,7 +154,7 @@ class ControlClient:
 
         resp = p2pd_pb.Response()
         await read_pbmsg_safe(stream, resp)
-        await stream.close()
+        await stream.aclose()
         raise_if_failed(resp)
         peer_id_bytes = resp.identify.id
         maddrs_bytes = resp.identify.addrs
@@ -162,7 +176,7 @@ class ControlClient:
 
         resp = p2pd_pb.Response()
         await read_pbmsg_safe(stream, resp)
-        await stream.close()
+        await stream.aclose()
         raise_if_failed(resp)
 
     async def list_peers(self) -> Tuple[PeerInfo, ...]:
@@ -171,7 +185,7 @@ class ControlClient:
         await write_pbmsg(stream, req)
         resp = p2pd_pb.Response()
         await read_pbmsg_safe(stream, resp)
-        await stream.close()
+        await stream.aclose()
         raise_if_failed(resp)
 
         peers = tuple(PeerInfo.from_pb(pinfo) for pinfo in resp.peers)
@@ -186,7 +200,7 @@ class ControlClient:
         await write_pbmsg(stream, req)
         resp = p2pd_pb.Response()
         await read_pbmsg_safe(stream, resp)
-        await stream.close()
+        await stream.aclose()
         raise_if_failed(resp)
 
     async def stream_open(
@@ -225,7 +239,7 @@ class ControlClient:
 
         resp = p2pd_pb.Response()
         await read_pbmsg_safe(stream, resp)
-        await stream.close()
+        await stream.aclose()
         raise_if_failed(resp)
 
         # if success, add the handler to the dict

@@ -23,7 +23,7 @@ class PubSubClient:
         await write_pbmsg(stream, req)
         resp = p2pd_pb.Response()
         await read_pbmsg_safe(stream, resp)
-        await stream.close()
+        await stream.aclose()
         raise_if_failed(resp)
 
         topics = tuple(resp.pubsub.topics)
@@ -37,7 +37,7 @@ class PubSubClient:
         await write_pbmsg(stream, req)
         resp = p2pd_pb.Response()
         await read_pbmsg_safe(stream, resp)
-        await stream.close()
+        await stream.aclose()
         raise_if_failed(resp)
 
         return tuple(ID(peer_id_bytes) for peer_id_bytes in resp.pubsub.peerIDs)
@@ -52,7 +52,7 @@ class PubSubClient:
         await write_pbmsg(stream, req)
         resp = p2pd_pb.Response()
         await read_pbmsg_safe(stream, resp)
-        await stream.close()
+        await stream.aclose()
         raise_if_failed(resp)
 
     async def subscribe(self, topic: str) -> anyio.abc.SocketStream:

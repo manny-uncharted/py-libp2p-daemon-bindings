@@ -1,8 +1,9 @@
 import logging
+from typing import Union
+
+from anyio import IncompleteRead
 from anyio.abc import ByteReceiveStream, ByteSendStream, SocketStream
 from anyio.streams.buffered import BufferedByteReceiveStream
-from anyio import IncompleteRead
-
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +17,9 @@ def _ensure_buffered(stream: ByteReceiveStream) -> BufferedByteReceiveStream:
     return BufferedByteReceiveStream(stream)
 
 
-
-async def _recv_exactly(stream, n: int) -> bytes:
+async def _recv_exactly(
+    stream: Union[ByteReceiveStream, SocketStream], n: int
+) -> bytes:
     """
     Compatibility shim:
       * If the object already has `receive_exactly`, just use it (works with your MockReaderWriter).
@@ -37,7 +39,7 @@ async def _recv_exactly(stream, n: int) -> bytes:
     if hasattr(stream, "read"):
         data = stream.read()
         if len(data) != n:
-            raise IncompleteRead(data, n)
+            raise IncompleteRead()
         return data
 
     raise TypeError(f"Stream {stream!r} has no compatible receive API")
@@ -79,9 +81,6 @@ async def read_unsigned_varint(
     max_int: int = 1 << max_bits
     iteration: int = 0
     result: int = 0
-
-    # Single buffered wrapper (if needed)
-    buffered = _ensure_buffered(stream)
 
     while True:
         data = await _recv_exactly(stream, 1)

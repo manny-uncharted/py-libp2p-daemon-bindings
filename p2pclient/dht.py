@@ -51,7 +51,7 @@ class DHTClient:
             raise ControlFailure(f"Type should be BEGIN instead of {dht_resp.type}")
         # BEGIN/END stream
         resps = tuple([i async for i in self._read_dht_stream(stream)])
-        await stream.close()
+        await stream.aclose()
         return resps
 
     async def find_peer(self, peer_id: ID) -> PeerInfo:
@@ -171,7 +171,7 @@ class DHTClient:
         await write_pbmsg(stream, req)
         resp = p2pd_pb.Response()
         await read_pbmsg_safe(stream, resp)
-        await stream.close()
+        await stream.aclose()
         raise_if_failed(resp)
 
     async def provide(self, cid: bytes) -> None:
@@ -182,5 +182,5 @@ class DHTClient:
         await write_pbmsg(stream, req)
         resp = p2pd_pb.Response()
         await read_pbmsg_safe(stream, resp)
-        await stream.close()
+        await stream.aclose()
         raise_if_failed(resp)

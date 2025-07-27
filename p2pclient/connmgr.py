@@ -24,7 +24,7 @@ class ConnectionManagerClient:
         await write_pbmsg(stream, req)
         resp = p2pd_pb.Response()
         await read_pbmsg_safe(stream, resp)
-        await stream.close()
+        await stream.aclose()
         raise_if_failed(resp)
 
     async def untag_peer(self, peer_id: ID, tag: str) -> None:
@@ -37,7 +37,7 @@ class ConnectionManagerClient:
         await write_pbmsg(stream, req)
         resp = p2pd_pb.Response()
         await read_pbmsg_safe(stream, resp)
-        await stream.close()
+        await stream.aclose()
         raise_if_failed(resp)
 
     async def trim(self) -> None:
@@ -48,5 +48,5 @@ class ConnectionManagerClient:
         await write_pbmsg(stream, req)
         resp = p2pd_pb.Response()
         await read_pbmsg_safe(stream, resp)
-        await stream.close()
+        await stream.aclose()
         raise_if_failed(resp)
