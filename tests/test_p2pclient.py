@@ -122,12 +122,18 @@ async def test_read_pbmsg_safe_readexactly_fails():
         # spin up server
         tg.start_soon(listener.serve, handler_stream)
 
+        # Give the server a moment to start
+        await anyio.sleep(0.1)
+
         # connect and immediately close to trigger IncompleteRead on the server
         stream = await anyio.connect_tcp(host, port)
         await stream.aclose()
 
         with anyio.fail_after(5):
             await event.wait()
+        
+        # Cancel the server task to allow clean shutdown
+        tg.cancel_scope.cancel()
 
     await listener.aclose()
 
