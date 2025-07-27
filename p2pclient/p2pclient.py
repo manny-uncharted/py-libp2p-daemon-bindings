@@ -1,7 +1,7 @@
-from typing import AsyncIterator, Iterable, Sequence, Tuple
+from typing import AsyncIterator, Iterable, Optional, Sequence, Tuple
 
 import anyio
-from anyio.abc import SocketStream
+from anyio.abc import ByteStream
 from async_generator import asynccontextmanager
 from multiaddr import Multiaddr
 
@@ -14,6 +14,9 @@ from .datastructures import PeerInfo, StreamInfo
 from .dht import DHTClient
 from .pubsub import PubSubClient
 
+# Type alias for compatibility
+SocketStream = ByteStream
+
 
 class Client:
     control: ControlClient
@@ -22,7 +25,7 @@ class Client:
     pubsub: PubSubClient
 
     def __init__(
-        self, control_maddr: Multiaddr = None, listen_maddr: Multiaddr = None
+        self, control_maddr: Optional[Multiaddr] = None, listen_maddr: Optional[Multiaddr] = None
     ) -> None:
         daemon_connector = DaemonConnector(control_maddr=control_maddr)
         self.control = ControlClient(
@@ -108,5 +111,5 @@ class Client:
     async def pubsub_publish(self, topic: str, data: bytes) -> None:
         return await self.pubsub.publish(topic=topic, data=data)
 
-    async def pubsub_subscribe(self, topic: str) -> anyio.abc.SocketStream:
+    async def pubsub_subscribe(self, topic: str) -> ByteStream:
         return await self.pubsub.subscribe(topic=topic)

@@ -3,12 +3,21 @@ import socket
 from contextlib import closing
 
 import anyio
-from anyio.abc import SocketStream
+from anyio.abc import ByteReceiveStream, ByteStream
+from anyio.streams.buffered import BufferedByteReceiveStream
 from google.protobuf.message import Message as PBMessage
+
+# Type alias for compatibility
+SocketStream = ByteStream
 
 from .exceptions import ControlFailure
 from .pb import p2pd_pb2 as p2pd_pb
-from .serialization import _recv_exactly, read_unsigned_varint, write_unsigned_varint
+from .serialization import (
+    _ensure_buffered,
+    _recv_exactly,
+    read_unsigned_varint,
+    write_unsigned_varint,
+)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -29,7 +38,10 @@ async def write_pbmsg(stream: SocketStream, pbmsg: PBMessage) -> None:
 
 
 async def read_pbmsg_safe(stream: SocketStream, pbmsg: PBMessage) -> None:
-    # Length prefix with timeout
+    ## Length prefix
+    # length = await read_unsigned_varint(stream)
+    # msg_bytes = await _recv_exactly(stream, length)
+
     with anyio.fail_after(1):
         length = await read_unsigned_varint(stream)
 

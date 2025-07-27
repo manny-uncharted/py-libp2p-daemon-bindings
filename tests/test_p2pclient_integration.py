@@ -109,6 +109,7 @@ async def p2pcs(
     "enable_control, func_make_p2pd_pair", ((True, make_p2pd_pair_unix),)
 )
 @pytest.mark.anyio
+@pytest.mark.unix_socket
 async def test_client_identify_unix_socket(p2pcs):
     await p2pcs[0].identify()
 

@@ -63,13 +63,15 @@ class Daemon(abc.ABC):
         self,
         daemon_executable: str,
         control_maddr: Multiaddr,
-        enable_control: bool,
-        enable_connmgr: bool,
-        enable_dht: bool,
-        enable_pubsub: bool,
+        peer_maddr: Optional[Multiaddr] = None,
+        enable_control: bool = True,
+        enable_connmgr: bool = False,
+        enable_dht: bool = False,
+        enable_pubsub: bool = False,
     ):
         self.daemon_executable = daemon_executable
         self.control_maddr = control_maddr
+        self.peer_maddr = peer_maddr
         self.enable_control = enable_control
         self.enable_connmgr = enable_connmgr
         self.enable_dht = enable_dht
@@ -121,7 +123,8 @@ class Daemon(abc.ABC):
             return
         self._terminate()
         self.proc_daemon.wait()
-        self.f_log.close()
+        if self.f_log:
+            self.f_log.close()
         self.is_closed = True
 
 
@@ -131,6 +134,8 @@ class GoDaemon(Daemon):
 
     def _make_command_line_options(self) -> List[str]:
         cmd_list = [f"-listen={str(self.control_maddr)}"]
+        if self.peer_maddr is not None:
+            cmd_list.append(f"-hostAddrs={str(self.peer_maddr)}")
         if self.enable_connmgr:
             cmd_list += ["-connManager=true", "-connLo=1", "-connHi=2", "-connGrace=0"]
         if self.enable_dht:
@@ -150,6 +155,8 @@ class JsDaemon(Daemon):
 
     def _make_command_line_options(self) -> List[str]:
         cmd_list = [f"--listen={str(self.control_maddr)}"]
+        if self.peer_maddr is not None:
+            cmd_list.append(f"--hostAddrs={str(self.peer_maddr)}")
         if self.enable_connmgr:
             cmd_list += [
                 "--connManager=true",
@@ -187,6 +194,8 @@ async def make_p2pd_pair_unix(
     name = str(uuid.uuid4())[:8]
     control_maddr = Multiaddr(f"/unix/tmp/test_p2pd_control_{name}.sock")
     listen_maddr = Multiaddr(f"/unix/tmp/test_p2pd_listen_{name}.sock")
+    # Use IP4 for peer connections even with Unix control sockets
+    peer_maddr = Multiaddr(f"/ip4/127.0.0.1/tcp/{get_unused_tcp_port()}")
     # Remove the existing unix socket files if they are existing
     try:
         os.unlink(control_maddr.value_for_protocol(protocols.P_UNIX))
@@ -200,6 +209,7 @@ async def make_p2pd_pair_unix(
         daemon_executable=daemon_executable,
         control_maddr=control_maddr,
         listen_maddr=listen_maddr,
+        peer_maddr=peer_maddr,
         enable_control=enable_control,
         enable_connmgr=enable_connmgr,
         enable_dht=enable_dht,
@@ -218,10 +228,12 @@ async def make_p2pd_pair_ip4(
 ) -> AsyncIterator[DaemonTuple]:
     control_maddr = Multiaddr(f"/ip4/127.0.0.1/tcp/{get_unused_tcp_port()}")
     listen_maddr = Multiaddr(f"/ip4/127.0.0.1/tcp/{get_unused_tcp_port()}")
+    peer_maddr = Multiaddr(f"/ip4/127.0.0.1/tcp/{get_unused_tcp_port()}")
     async with make_p2pd_pair(
         daemon_executable=daemon_executable,
         control_maddr=control_maddr,
         listen_maddr=listen_maddr,
+        peer_maddr=peer_maddr,
         enable_control=enable_control,
         enable_connmgr=enable_connmgr,
         enable_dht=enable_dht,
@@ -235,6 +247,7 @@ async def make_p2pd_pair(
     daemon_executable: str,
     control_maddr: Multiaddr,
     listen_maddr: Multiaddr,
+    peer_maddr: Multiaddr,
     enable_control: bool,
     enable_connmgr: bool,
     enable_dht: bool,
@@ -244,6 +257,7 @@ async def make_p2pd_pair(
     p2pd = daemon_cls(
         daemon_executable=daemon_executable,
         control_maddr=control_maddr,
+        peer_maddr=peer_maddr,
         enable_control=enable_control,
         enable_connmgr=enable_connmgr,
         enable_dht=enable_dht,
