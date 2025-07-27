@@ -11,6 +11,7 @@ from typing import (
 )
 
 import anyio
+from anyio.abc import SocketStream
 from async_generator import asynccontextmanager
 from multiaddr import Multiaddr, protocols
 
@@ -22,7 +23,7 @@ from .exceptions import ControlFailure, DispatchFailure
 from .pb import p2pd_pb2 as p2pd_pb
 from .utils import raise_if_failed, read_pbmsg_safe, write_pbmsg
 
-StreamHandler = Callable[[StreamInfo, anyio.abc.SocketStream], Awaitable[None]]
+StreamHandler = Callable[[StreamInfo, SocketStream], Awaitable[None]]
 
 
 _supported_conn_protocols = (
@@ -134,14 +135,16 @@ class ControlClient:
             raise ValueError(
                 f"protocol not supported: protocol={protocols.protocol_with_code(proto_code)}"
             )
-        
+
         try:
             async with anyio.create_task_group() as task_group:
                 self.task_group = task_group
                 async with self.listener:
                     task_group.start_soon(self._accept_new_connections, self.listener)
                     self.logger.info(
-                        "DaemonConnector %s starts listening to %s", self, self.listen_maddr
+                        "DaemonConnector %s starts listening to %s",
+                        self,
+                        self.listen_maddr,
                     )
                     yield self
                 # Listener is closed before task_group exits to prevent ClosedResourceError

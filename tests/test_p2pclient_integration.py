@@ -16,24 +16,25 @@ from p2pclient.utils import read_pbmsg_safe
 async def _stream_receive_exactly(stream, n: int) -> bytes:
     """Helper function to receive exactly n bytes from a stream using anyio 4.x API"""
     from anyio.streams.buffered import BufferedByteReceiveStream
-    
+
     # Check if stream already has receive_exactly method
-    if hasattr(stream, 'receive_exactly'):
+    if hasattr(stream, "receive_exactly"):
         return await stream.receive_exactly(n)
-    
+
     # Wrap with BufferedByteReceiveStream if it has receive method
-    if hasattr(stream, 'receive'):
+    if hasattr(stream, "receive"):
         buffered = BufferedByteReceiveStream(stream)
         return await buffered.receive_exactly(n)
-    
+
     # Fallback for mock streams
-    if hasattr(stream, 'read'):
+    if hasattr(stream, "read"):
         data = stream.read(n)
         if len(data) != n:
             raise anyio.IncompleteRead()
         return data
-    
+
     raise TypeError(f"Stream {stream!r} has no compatible receive API")
+
 
 TIMEOUT_DURATION = 30  # seconds
 
@@ -302,7 +303,9 @@ async def test_client_stream_handler_success(p2pcs):
 
     async def handle_another_proto(stream_info, stream):
         event_another_proto.set()
-        bytes_received = await _stream_receive_exactly(stream, len(another_bytes_to_send))
+        bytes_received = await _stream_receive_exactly(
+            stream, len(another_bytes_to_send)
+        )
         assert bytes_received == another_bytes_to_send
 
     await p2pcs[1].stream_handler(another_proto, handle_another_proto)

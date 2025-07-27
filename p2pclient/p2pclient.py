@@ -1,6 +1,7 @@
 from typing import AsyncIterator, Iterable, Sequence, Tuple
 
 import anyio
+from anyio.abc import SocketStream
 from async_generator import asynccontextmanager
 from multiaddr import Multiaddr
 
@@ -36,9 +37,6 @@ class Client:
         async with self.control.listen():
             yield self
 
-    async def close(self) -> None:
-        await self.control.close()
-
     async def identify(self) -> Tuple[ID, Tuple[Multiaddr, ...]]:
         return await self.control.identify()
 
@@ -53,7 +51,7 @@ class Client:
 
     async def stream_open(
         self, peer_id: ID, protocols: Sequence[str]
-    ) -> Tuple[StreamInfo, anyio.abc.SocketStream]:
+    ) -> Tuple[StreamInfo, SocketStream]:
         return await self.control.stream_open(peer_id=peer_id, protocols=protocols)
 
     async def stream_handler(self, proto: str, handler_cb: StreamHandler) -> None:
