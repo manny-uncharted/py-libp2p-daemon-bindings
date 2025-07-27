@@ -1,6 +1,6 @@
 from typing import Tuple
 
-import anyio
+from anyio.abc import ByteStream
 
 from p2pclient.libp2p_stubs.peer.id import ID
 
@@ -55,7 +55,7 @@ class PubSubClient:
         await stream.aclose()
         raise_if_failed(resp)
 
-    async def subscribe(self, topic: str) -> anyio.abc.SocketStream:
+    async def subscribe(self, topic: str) -> ByteStream:
         """PUBSUB SUBSCRIBE"""
         pubsub_req = p2pd_pb.PSRequest(type=p2pd_pb.PSRequest.SUBSCRIBE, topic=topic)
         req = p2pd_pb.Request(type=p2pd_pb.Request.PUBSUB, pubsub=pubsub_req)

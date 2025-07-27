@@ -1,6 +1,5 @@
 from typing import AsyncIterator, Iterable, Optional, Sequence, Tuple
 
-import anyio
 from anyio.abc import ByteStream
 from async_generator import asynccontextmanager
 from multiaddr import Multiaddr
@@ -25,7 +24,9 @@ class Client:
     pubsub: PubSubClient
 
     def __init__(
-        self, control_maddr: Optional[Multiaddr] = None, listen_maddr: Optional[Multiaddr] = None
+        self,
+        control_maddr: Optional[Multiaddr] = None,
+        listen_maddr: Optional[Multiaddr] = None,
     ) -> None:
         daemon_connector = DaemonConnector(control_maddr=control_maddr)
         self.control = ControlClient(

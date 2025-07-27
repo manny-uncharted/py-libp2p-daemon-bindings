@@ -19,7 +19,7 @@ lint:
 	@echo "🔍  Checking code style & quality…"
 	black --check p2pclient tests setup.py
 	isort --check-only p2pclient tests setup.py
-	flake8 p2pclient tests setup.py
+	flake8 p2pclient tests setup.py --exclude="*_pb2.py,*/pb/*_pb2.py"
 	mypy -p p2pclient --config-file mypy.ini
 
 

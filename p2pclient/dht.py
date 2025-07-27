@@ -1,6 +1,6 @@
 from typing import AsyncGenerator, Tuple
 
-import anyio
+from anyio.abc import ByteStream
 
 from p2pclient.libp2p_stubs.crypto.pb import crypto_pb2 as crypto_pb
 from p2pclient.libp2p_stubs.peer.id import ID
@@ -20,7 +20,7 @@ class DHTClient:
 
     @staticmethod
     async def _read_dht_stream(
-        stream: anyio.abc.SocketStream,
+        stream: ByteStream,
     ) -> AsyncGenerator[p2pd_pb.DHTResponse, None]:
         while True:
             dht_resp = p2pd_pb.DHTResponse()

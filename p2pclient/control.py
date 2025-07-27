@@ -1,5 +1,5 @@
-import logging
 import asyncio
+import logging
 from typing import (
     AsyncIterator,
     Awaitable,
@@ -18,14 +18,14 @@ from multiaddr import Multiaddr, protocols
 
 from p2pclient.libp2p_stubs.peer.id import ID
 
-# Type alias for compatibility  
-SocketStream = ByteStream
-
 from . import config
 from .datastructures import PeerInfo, StreamInfo
 from .exceptions import ControlFailure, DispatchFailure
 from .pb import p2pd_pb2 as p2pd_pb
 from .utils import raise_if_failed, read_pbmsg_safe, write_pbmsg
+
+# Type alias for compatibility
+SocketStream = ByteStream
 
 StreamHandler = Callable[[StreamInfo, SocketStream], Awaitable[None]]
 
@@ -92,7 +92,9 @@ class ControlClient:
     logger = logging.getLogger("p2pclient.ControlClient")
 
     def __init__(
-        self, daemon_connector: DaemonConnector, listen_maddr: Optional[Multiaddr] = None
+        self,
+        daemon_connector: DaemonConnector,
+        listen_maddr: Optional[Multiaddr] = None,
     ) -> None:
         if listen_maddr is None:
             listen_maddr = Multiaddr(config.listen_maddr_str)
@@ -100,9 +102,7 @@ class ControlClient:
         self.daemon_connector = daemon_connector
         self.handlers = {}
 
-    async def _accept_new_connections(
-        self, listener: Listener[ByteStream]
-    ) -> None:
+    async def _accept_new_connections(self, listener: Listener[ByteStream]) -> None:
         try:
             await listener.serve(self._dispatcher)
         except (anyio.ClosedResourceError, asyncio.CancelledError, BaseExceptionGroup):
@@ -152,7 +152,9 @@ class ControlClient:
                         async with anyio.create_task_group() as task_group:
                             self.task_group = task_group
                             async with self.listener:
-                                task_group.start_soon(self._accept_new_connections, self.listener)
+                                task_group.start_soon(
+                                    self._accept_new_connections, self.listener
+                                )
                                 self.logger.info(
                                     "DaemonConnector %s starts listening to %s",
                                     self,
@@ -167,7 +169,9 @@ class ControlClient:
                 async with anyio.create_task_group() as task_group:
                     self.task_group = task_group
                     async with self.listener:
-                        task_group.start_soon(self._accept_new_connections, self.listener)
+                        task_group.start_soon(
+                            self._accept_new_connections, self.listener
+                        )
                         self.logger.info(
                             "DaemonConnector %s starts listening to %s",
                             self,

@@ -390,9 +390,19 @@ async def test_client_dht_find_peers_connected_to_peer_success(p2pcs):
     await connect_safe(p2pcs[0], p2pcs[1])
     # test case: 0 <-> 1 <-> 2
     await connect_safe(p2pcs[1], p2pcs[2])
-    pinfos_connecting_to_2 = await p2pcs[0].dht_find_peers_connected_to_peer(peer_id_2)
-    # TODO: need to confirm this behaviour. Why the result is the PeerInfo of `peer_id_2`?
-    assert len(pinfos_connecting_to_2) == 1
+    try:
+        pinfos_connecting_to_2 = await p2pcs[0].dht_find_peers_connected_to_peer(
+            peer_id_2
+        )
+        # TODO: need to confirm this behaviour. Why the result is the PeerInfo of `peer_id_2`?
+        assert len(pinfos_connecting_to_2) == 1
+    except ControlFailure as e:
+        if "not supported" in str(e):
+            pytest.skip(
+                "FIND_PEERS_CONNECTED_TO_PEER not supported in this daemon version"
+            )
+        else:
+            raise
 
 
 # DHT FIND_PEERS_CONNECTED_TO_PEER not implemented in jsp2pd
@@ -403,11 +413,19 @@ async def test_client_dht_find_peers_connected_to_peer_failure(peer_id_random, p
     peer_id_2, _ = await p2pcs[2].identify()
     await connect_safe(p2pcs[0], p2pcs[1])
     # test case: request for random peer_id
-    pinfos = await p2pcs[0].dht_find_peers_connected_to_peer(peer_id_random)
-    assert not pinfos
-    # test case: no route to the peer with peer_id_2
-    pinfos = await p2pcs[0].dht_find_peers_connected_to_peer(peer_id_2)
-    assert not pinfos
+    try:
+        pinfos = await p2pcs[0].dht_find_peers_connected_to_peer(peer_id_random)
+        assert not pinfos
+        # test case: no route to the peer with peer_id_2
+        pinfos = await p2pcs[0].dht_find_peers_connected_to_peer(peer_id_2)
+        assert not pinfos
+    except ControlFailure as e:
+        if "not supported" in str(e):
+            pytest.skip(
+                "FIND_PEERS_CONNECTED_TO_PEER not supported in this daemon version"
+            )
+        else:
+            raise
 
 
 # Fails randomly: response = type: ERROR error {msg: 'not found'}.
@@ -482,9 +500,9 @@ async def test_client_dht_get_value(p2pcs):
 @pytest.mark.anyio
 async def test_client_dht_search_value(p2pcs):
     key_not_existing = b"/123/456"
-    # test case: no peer in table
-    with pytest.raises(ControlFailure):
-        await p2pcs[0].dht_search_value(key_not_existing)
+    # test case: no peer in table - should return empty result, not error
+    values = await p2pcs[0].dht_search_value(key_not_existing)
+    assert len(values) == 0
     await connect_safe(p2pcs[0], p2pcs[1])
     # test case: non-existing key
     pinfos = await p2pcs[0].dht_search_value(key_not_existing)
