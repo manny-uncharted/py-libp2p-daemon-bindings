@@ -40,10 +40,10 @@ async def read_pbmsg_safe(stream: SocketStream, pbmsg: PBMessage) -> None:
     # length = await read_unsigned_varint(stream)
     # msg_bytes = await _recv_exactly(stream, length)
 
-    with anyio.fail_after(1):
+    with anyio.fail_after(60):
         length = await read_unsigned_varint(stream)
 
-    with anyio.fail_after(2):
+    with anyio.fail_after(60):
         msg_bytes = await _recv_exactly(stream, length)
 
     if logger.isEnabledFor(logging.DEBUG):

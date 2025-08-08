@@ -10,6 +10,7 @@ from __future__ import annotations
 import abc
 import os
 import subprocess
+import tempfile
 import time
 import uuid
 from typing import (
@@ -30,7 +31,7 @@ from multiaddr import Multiaddr, protocols
 from p2pclient.p2pclient import Client
 from p2pclient.utils import get_unused_tcp_port
 
-TIMEOUT_DURATION = 30  # seconds
+TIMEOUT_DURATION = 120  # seconds - increased for Windows and bootstrap connectivity
 
 
 async def try_until_success(
@@ -82,7 +83,8 @@ class Daemon(abc.ABC):
 
     def _start_logging(self) -> None:
         name_control_maddr = str(self.control_maddr).replace("/", "_").replace(".", "_")
-        self.log_filename = f"/tmp/log_p2pd{name_control_maddr}.txt"
+        temp_dir = tempfile.gettempdir()
+        self.log_filename = os.path.join(temp_dir, f"log_p2pd{name_control_maddr}.txt")
         self.f_log = open(self.log_filename, "wb")
 
     @abc.abstractmethod
@@ -139,7 +141,8 @@ class GoDaemon(Daemon):
         if self.enable_connmgr:
             cmd_list += ["-connManager=true", "-connLo=1", "-connHi=2", "-connGrace=0"]
         if self.enable_dht:
-            cmd_list += ["-dht=true"]
+            # Enable DHT with bootstrap for better connectivity
+            cmd_list += ["-dht=true", "-b"]
         if self.enable_pubsub:
             cmd_list += ["-pubsub=true", "-pubsubRouter=gossipsub"]
 
