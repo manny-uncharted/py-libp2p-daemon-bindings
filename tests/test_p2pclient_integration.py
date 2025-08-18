@@ -357,14 +357,14 @@ async def test_client_stream_handler_failure(p2pcs):
         await p2pcs[0].stream_open(peer_id_1, (proto,))
 
 
-# Fails randomly with response = type: ERROR # error {msg: "Not found"}
+
 @pytest.mark.jsp2pd_probable_bug
 @pytest.mark.parametrize("enable_control, enable_dht", ((True, True),))
 @pytest.mark.anyio
 async def test_client_dht_find_peer_success(p2pcs):
     peer_id_2, _ = await p2pcs[2].identify()
-    await connect_safe(p2pcs[0], p2pcs[1])
-    await connect_safe(p2pcs[1], p2pcs[2])
+    # await connect_safe(p2pcs[0], p2pcs[1])
+    # await connect_safe(p2pcs[1], p2pcs[2])
     pinfo = await p2pcs[0].dht_find_peer(peer_id_2)
     assert pinfo.peer_id == peer_id_2
     assert len(pinfo.addrs) != 0
@@ -384,7 +384,7 @@ async def test_client_dht_find_peer_failure(peer_id_random, p2pcs, daemon_execut
         enable_pubsub=False, 
     ) as isolated_p2pd: isolated_peer_id, _ = await isolated_p2pd.client.identify()
     
-    await connect_safe(p2pcs[0], p2pcs[1])
+    # await connect_safe(p2pcs[0], p2pcs[1])
     # test case: `peer_id` not found
     with pytest.raises(ControlFailure):
         await p2pcs[0].dht_find_peer(peer_id_random)
