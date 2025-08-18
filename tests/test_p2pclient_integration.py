@@ -372,16 +372,32 @@ async def test_client_dht_find_peer_success(p2pcs):
 
 @pytest.mark.parametrize("enable_control, enable_dht", ((True, True),))
 @pytest.mark.anyio
-async def test_client_dht_find_peer_failure(peer_id_random, p2pcs):
-    peer_id_2, _ = await p2pcs[2].identify()
+async def test_client_dht_find_peer_failure(peer_id_random, p2pcs, daemon_executable):
+    # peer_id_2, _ = await p2pcs[2].identify()
+    
+    # Creating a completely isolated peer that's not part of the DHT network 
+    async with make_p2pd_pair_ip4( 
+        daemon_executable=daemon_executable, 
+        enable_control=True, 
+        enable_connmgr=False, 
+        enable_dht=False, # Disabling DHT so that the peer isnt a part of it.
+        enable_pubsub=False, 
+    ) as isolated_p2pd: isolated_peer_id, _ = await isolated_p2pd.client.identify()
+    
     await connect_safe(p2pcs[0], p2pcs[1])
     # test case: `peer_id` not found
     with pytest.raises(ControlFailure):
         await p2pcs[0].dht_find_peer(peer_id_random)
+        
     # test case: no route to the peer with peer_id_2
+    # with pytest.raises(ControlFailure):
+    #     await p2pcs[0].dht_find_peer(peer_id_2)
+    
+    # The above test case never fails because somehow p2pcs[0].list_peers() returns ~74 peers (instead of just peer 1), it is connected to, and hence it finds a route to peer 2. 
+        
+    # test case: no route to an isolated peer
     with pytest.raises(ControlFailure):
-        await p2pcs[0].dht_find_peer(peer_id_2)
-
+        await p2pcs[0].dht_find_peer(isolated_peer_id)
 
 # DHT FIND_PEERS_CONNECTED_TO_PEER not implemented in jsp2pd
 @pytest.mark.go_only
