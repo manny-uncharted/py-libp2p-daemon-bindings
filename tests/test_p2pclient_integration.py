@@ -111,7 +111,7 @@ async def p2pcs(
 )
 @pytest.mark.anyio
 @pytest.mark.unix_socket
-@pytest.mark.skipif(os.name == 'nt', reason="Unix sockets not supported on Windows")
+@pytest.mark.skipif(os.name == "nt", reason="Unix sockets not supported on Windows")
 async def test_client_identify_unix_socket(p2pcs):
     await p2pcs[0].identify()
 
@@ -357,7 +357,6 @@ async def test_client_stream_handler_failure(p2pcs):
         await p2pcs[0].stream_open(peer_id_1, (proto,))
 
 
-
 @pytest.mark.jsp2pd_probable_bug
 @pytest.mark.parametrize("enable_control, enable_dht", ((True, True),))
 @pytest.mark.anyio
@@ -374,30 +373,32 @@ async def test_client_dht_find_peer_success(p2pcs):
 @pytest.mark.anyio
 async def test_client_dht_find_peer_failure(peer_id_random, p2pcs, daemon_executable):
     # peer_id_2, _ = await p2pcs[2].identify()
-    
-    # Creating a completely isolated peer that's not part of the DHT network 
-    async with make_p2pd_pair_ip4( 
-        daemon_executable=daemon_executable, 
-        enable_control=True, 
-        enable_connmgr=False, 
-        enable_dht=False, # Disabling DHT so that the peer isnt a part of it.
-        enable_pubsub=False, 
-    ) as isolated_p2pd: isolated_peer_id, _ = await isolated_p2pd.client.identify()
-    
+
+    # Creating a completely isolated peer that's not part of the DHT network
+    async with make_p2pd_pair_ip4(
+        daemon_executable=daemon_executable,
+        enable_control=True,
+        enable_connmgr=False,
+        enable_dht=False,  # Disabling DHT so that the peer isnt a part of it.
+        enable_pubsub=False,
+    ) as isolated_p2pd:
+        isolated_peer_id, _ = await isolated_p2pd.client.identify()
+
     # await connect_safe(p2pcs[0], p2pcs[1])
     # test case: `peer_id` not found
     with pytest.raises(ControlFailure):
         await p2pcs[0].dht_find_peer(peer_id_random)
-        
+
     # test case: no route to the peer with peer_id_2
     # with pytest.raises(ControlFailure):
     #     await p2pcs[0].dht_find_peer(peer_id_2)
-    
-    # The above test case never fails because somehow p2pcs[0].list_peers() returns ~74 peers (instead of just peer 1), it is connected to, and hence it finds a route to peer 2. 
-        
+
+    # The above test case never fails because somehow p2pcs[0].list_peers() returns ~74 peers (instead of just peer 1), it is connected to, and hence it finds a route to peer 2.
+
     # test case: no route to an isolated peer
     with pytest.raises(ControlFailure):
         await p2pcs[0].dht_find_peer(isolated_peer_id)
+
 
 # DHT FIND_PEERS_CONNECTED_TO_PEER not implemented in jsp2pd
 @pytest.mark.go_only
@@ -467,7 +468,9 @@ async def test_client_dht_get_closest_peers(p2pcs):
     await connect_safe(p2pcs[0], p2pcs[1])
     await connect_safe(p2pcs[1], p2pcs[2])
     peer_ids_1 = await p2pcs[1].dht_get_closest_peers(b"123")
-    assert len(peer_ids_1) >= 2  # Should return at least 2 peers (may be more with bootstrap)
+    assert (
+        len(peer_ids_1) >= 2
+    )  # Should return at least 2 peers (may be more with bootstrap)
 
 
 # We get the following error: The stream was closed before the read operation could be completed
@@ -560,34 +563,37 @@ async def test_client_dht_put_value(p2pcs):
 async def test_client_dht_provide(p2pcs):
     peer_id_0, _ = await p2pcs[0].identify()
     await connect_safe(p2pcs[0], p2pcs[1])
-    
+
     # Use a proper CID (Content Identifier) format
     # This is a valid CIDv1 with SHA-256 hash
     import hashlib
     import time
-    
+
     # Create unique content and generate a proper CID
     unique_content = f"test_content_{time.time()}_{peer_id_0}".encode()
     content_hash = hashlib.sha256(unique_content).digest()
-    
+
     # Create a CIDv1 with multicodec for raw data (0x55) and SHA-256 (0x12)
     # Format: version(1) + codec(0x55) + hash_type(0x12) + hash_length(32) + hash
     cid_bytes = bytes([0x01, 0x55, 0x12, 0x20]) + content_hash
-    
+
     # test case: p2pcs[0] provides the content
     await p2pcs[0].dht_provide(cid_bytes)
-    
+
     # Give DHT some time to propagate the provider record
     import anyio
+
     await anyio.sleep(3)
-    
+
     # Verify our peer is now a provider for this content
     pinfos = await p2pcs[1].dht_find_providers(cid_bytes, 100)
     peer_ids = [pinfo.peer_id for pinfo in pinfos]
-    
+
     # The main assertion: our peer should be in the provider list
-    assert peer_id_0 in peer_ids, f"Peer {peer_id_0} should be a provider but found: {peer_ids}"
-    
+    assert (
+        peer_id_0 in peer_ids
+    ), f"Peer {peer_id_0} should be a provider but found: {peer_ids}"
+
     # Additional verification: we should have at least one provider (our peer)
     assert len(pinfos) >= 1, f"Expected at least 1 provider, got {len(pinfos)}"
 
