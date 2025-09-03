@@ -393,7 +393,9 @@ async def test_client_dht_find_peer_failure(peer_id_random, p2pcs, daemon_execut
     # with pytest.raises(ControlFailure):
     #     await p2pcs[0].dht_find_peer(peer_id_2)
 
-    # The above test case never fails because somehow p2pcs[0].list_peers() returns ~74 peers (instead of just peer 1), it is connected to, and hence it finds a route to peer 2.
+    # The above test case never fails because somehow 
+    # p2pcs[0].list_peers() returns ~74 peers (instead of just peer 1),
+    # it is connected to, and hence it finds a route to peer 2.
 
     # test case: no route to an isolated peer
     with pytest.raises(ControlFailure):
