@@ -12,5 +12,10 @@ go env
 git clone https://$LIBP2P_DAEMON_REPO
 cd $PROJECT_NAME
 git checkout $LIBP2P_DAEMON_VERSION
+
+# Patch go.mod for Go 1.12 compatibility
+sed -i '' 's/go 1.22/go 1.12/' go.mod
+sed -i '' '/toolchain/d' go.mod
+
 go get ./...
 go install ./...
