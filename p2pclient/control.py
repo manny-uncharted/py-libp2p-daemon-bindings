@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from builtins import BaseExceptionGroup
 from typing import (
     AsyncIterator,
     Awaitable,
