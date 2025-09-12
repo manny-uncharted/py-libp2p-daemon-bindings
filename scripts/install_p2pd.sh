@@ -13,15 +13,15 @@ git clone https://$LIBP2P_DAEMON_REPO
 cd $PROJECT_NAME
 git checkout $LIBP2P_DAEMON_VERSION
 
-# Patch go.mod for Go 1.12 compatibility
-# Handle different sed syntax for macOS and Linux
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    sed -i '' 's/go 1.22/go 1.12/' go.mod
-    sed -i '' '/toolchain/d' go.mod
-else
-    sed -i 's/go 1.22/go 1.12/' go.mod
-    sed -i '/toolchain/d' go.mod
-fi
+## Patch go.mod for Go 1.12 compatibility
+# # Handle different sed syntax for macOS and Linux
+# if [[ "$OSTYPE" == "darwin"* ]]; then
+#     sed -i '' 's/go 1.22/go 1.12/' go.mod
+#     sed -i '' '/toolchain/d' go.mod
+# else
+#     sed -i 's/go 1.22/go 1.12/' go.mod
+#     sed -i '/toolchain/d' go.mod
+# fi
 
 go get ./...
 go install ./...
