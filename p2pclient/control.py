@@ -4,7 +4,7 @@ import logging
 try:
     from builtins import BaseExceptionGroup  # type: ignore[attr-defined]
 except ImportError:  # Python < 3.11
-    from exceptiongroup import BaseExceptionGroup  # type: ignore
+    from exceptiongroup import BaseExceptionGroup
 from typing import (
     AsyncIterator,
     Awaitable,
