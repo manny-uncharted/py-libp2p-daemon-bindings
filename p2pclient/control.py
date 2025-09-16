@@ -1,6 +1,10 @@
 import asyncio
 import logging
-from builtins import BaseExceptionGroup
+# Use built-in on Python 3.11+, fall back to exceptiongroup on older Pythons
+try:
+    from builtins import BaseExceptionGroup  # type: ignore[attr-defined]
+except ImportError:  # Python < 3.11
+    from exceptiongroup import BaseExceptionGroup  # type: ignore
 from typing import (
     AsyncIterator,
     Awaitable,
