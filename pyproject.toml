@@ -41,12 +41,18 @@ Homepage = "https://github.com/mhchia/py-libp2p-daemon-bindings"
 
 [project.optional-dependencies]
 test = [
-    "mypy>=1.17.0",
+    # Type checker only on Python 3.8+
+    "mypy>=1.17.0; python_version >= '3.8'",
     "pytest-cov>=2.12.0,<5.0.0",
-    "pytest>=8.2,<9.0.0",
-    "pytest-asyncio>=1.1.0,<2.0.0",
+    # Pytest 8 requires Python >=3.8; use 7.x on 3.7
+    "pytest>=8.2,<9.0.0; python_version >= '3.8'",
+    "pytest>=7.4,<8.0; python_version < '3.8'",
+    # pytest-asyncio 1.x requires Python >=3.8; use 0.20.x on 3.7
+    "pytest-asyncio>=1.1.0,<2.0.0; python_version >= '3.8'",
+    "pytest-asyncio>=0.20,<0.21; python_version < '3.8'",
     "types-protobuf",
-    "trio>=0.25.0",
+    # Trio new versions are 3.8+; skip on 3.7
+    "trio>=0.25.0; python_version >= '3.8'",
 
 ]
 lint = [

@@ -1,11 +1,11 @@
 import asyncio
 import logging
+import sys
 # Use built-in on Python 3.11+, fall back to exceptiongroup on older Pythons
-try:
-    from builtins import BaseExceptionGroup as _BaseExceptionGroup
-except ImportError:  # Python < 3.11
-    from exceptiongroup import BaseExceptionGroup as _BaseExceptionGroup
-BaseExceptionGroup = _BaseExceptionGroup
+if sys.version_info >= (3, 11):
+    from builtins import BaseExceptionGroup
+else:  # Python < 3.11
+    from exceptiongroup import BaseExceptionGroup
 from typing import (
     AsyncIterator,
     Awaitable,
