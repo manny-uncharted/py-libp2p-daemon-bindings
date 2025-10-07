@@ -11,7 +11,8 @@ from p2pclient.libp2p_stubs.peer.peerinfo import (
 )
 
 ALPHABETS = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-VALID_MULTI_ADDR_STR = "/ip4/127.0.0.1/tcp/8000/p2p/3YgLAeMKSAPcGqZkAt8mREqhQXmJT8SN8VCMN4T6ih4GNX9wvK8mWJnWZ1qA2mLdCQ"  # noqa: E501
+# Use a valid CIDv0 format (base58-encoded multihash)
+VALID_MULTI_ADDR_STR = "/ip4/127.0.0.1/tcp/8000/p2p/QmX6C8WwYkD6WzKBtavvAwaK1uMQxannxevbrX1GeyXL1S"  # noqa: E501
 
 
 def test_init_():
@@ -46,7 +47,7 @@ def test_info_from_p2p_addr_valid():
     info = info_from_p2p_addr(m_addr)
     assert (
         info.peer_id.pretty()
-        == "3YgLAeMKSAPcGqZkAt8mREqhQXmJT8SN8VCMN4T6ih4GNX9wvK8mWJnWZ1qA2mLdCQ"  # noqa: W503
+        == "QmX6C8WwYkD6WzKBtavvAwaK1uMQxannxevbrX1GeyXL1S"  # noqa: W503
     )
     assert len(info.addrs) == 1
     assert str(info.addrs[0]) == "/ip4/127.0.0.1/tcp/8000"
