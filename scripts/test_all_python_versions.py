@@ -27,7 +27,7 @@ def run_command(cmd, description, python_version=None):
     
     return result.returncode == 0
 
-def test_python_version(version):
+def run_python_version_tests(version):
     """Test a specific Python version"""
     print(f"\n🚀 Testing Python {version}")
     
@@ -67,7 +67,7 @@ def main():
     
     for version in versions:
         try:
-            success = test_python_version(version)
+            success = run_python_version_tests(version)
             results[version] = success
         except Exception as e:
             print(f"❌ Error testing Python {version}: {e}")
