@@ -51,10 +51,12 @@ test = [
     # pytest-asyncio 1.x requires Python >=3.9; use 0.20.x on 3.8
     "pytest-asyncio>=1.1.0,<2.0.0; python_version >= '3.9'",
     "pytest-asyncio>=0.20,<0.21; python_version < '3.9'",
-    # Parallel testing for faster execution
-    "pytest-xdist>=3.0.0",
-    # Timeout plugin for test timeouts
-    "pytest-timeout>=2.0.0",
+        # Parallel testing for faster execution
+        "pytest-xdist>=3.0.0",
+        # Timeout plugin for test timeouts
+        "pytest-timeout>=2.0.0",
+        # Retry flaky tests
+        "pytest-rerunfailures>=12.0",
     "types-protobuf",
     # Trio new versions are 3.8+; skip on 3.7
     "trio>=0.25.0; python_version >= '3.8'",

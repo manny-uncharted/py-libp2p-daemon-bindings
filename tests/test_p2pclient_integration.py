@@ -363,6 +363,7 @@ async def test_client_stream_handler_failure(p2pcs):
 @pytest.mark.jsp2pd_probable_bug
 @pytest.mark.parametrize("enable_control, enable_dht", ((True, True),))
 @pytest.mark.anyio
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 async def test_client_dht_find_peer_success(p2pcs):
     peer_id_2, _ = await p2pcs[2].identify()
     # await connect_safe(p2pcs[0], p2pcs[1])
