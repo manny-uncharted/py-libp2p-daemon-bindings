@@ -13,6 +13,9 @@ from p2pclient.exceptions import ControlFailure
 from p2pclient.libp2p_stubs.peer.id import ID
 from p2pclient.utils import read_pbmsg_safe
 
+# Mark all tests in this module as integration tests
+pytestmark = pytest.mark.integration
+
 
 async def _stream_receive_exactly(stream, n: int) -> bytes:
     """Helper function to receive exactly n bytes from a stream using anyio 4.x API"""

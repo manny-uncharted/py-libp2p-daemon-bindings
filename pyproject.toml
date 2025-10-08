@@ -24,7 +24,8 @@ classifiers = [
 ]
 requires-python = ">=3.7"
 dependencies = [
-    "anyio>=4,<5",
+    "anyio>=3.6.0,<5; python_version >= '3.8'",
+    "anyio>=3.0.0,<4; python_version < '3.8'",
     "async-exit-stack>=1.0.1,<2.0.0",
     "async-generator>=1.10,<2.0",
     "base58>=1.0.3",
@@ -41,15 +42,19 @@ Homepage = "https://github.com/mhchia/py-libp2p-daemon-bindings"
 
 [project.optional-dependencies]
 test = [
-    # Type checker only on Python 3.8+
-    "mypy>=1.17.0; python_version >= '3.8'",
+    # Type checker only on Python 3.9+ (mypy 1.17.0+ requires Python 3.9+)
+    "mypy>=1.17.0; python_version >= '3.9'",
     "pytest-cov>=2.12.0,<5.0.0",
     # Pytest 8 requires Python >=3.8; use 7.x on 3.7
     "pytest>=8.2,<9.0.0; python_version >= '3.8'",
     "pytest>=7.4,<8.0; python_version < '3.8'",
-    # pytest-asyncio 1.x requires Python >=3.8; use 0.20.x on 3.7
-    "pytest-asyncio>=1.1.0,<2.0.0; python_version >= '3.8'",
-    "pytest-asyncio>=0.20,<0.21; python_version < '3.8'",
+    # pytest-asyncio 1.x requires Python >=3.9; use 0.20.x on 3.8
+    "pytest-asyncio>=1.1.0,<2.0.0; python_version >= '3.9'",
+    "pytest-asyncio>=0.20,<0.21; python_version < '3.9'",
+    # Parallel testing for faster execution
+    "pytest-xdist>=3.0.0",
+    # Timeout plugin for test timeouts
+    "pytest-timeout>=2.0.0",
     "types-protobuf",
     # Trio new versions are 3.8+; skip on 3.7
     "trio>=0.25.0; python_version >= '3.8'",

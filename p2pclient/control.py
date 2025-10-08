@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+
 # Use built-in on Python 3.11+, fall back to exceptiongroup on older Pythons
 if sys.version_info >= (3, 11):
     from builtins import BaseExceptionGroup
