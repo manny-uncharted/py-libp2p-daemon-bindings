@@ -63,7 +63,11 @@ jobs:
         pip install -e .[test]
     - name: Check types
       run: |
-        mypy p2pclient
+        if python -c "import sys; exit(0 if sys.version_info >= (3, 9) else 1)"; then
+          mypy p2pclient
+        else
+          echo "Skipping mypy check for Python ${{ matrix.python-version }} (requires Python 3.9+)"
+        fi
     - name: Run unit tests with p2pd
       run: |
         pytest -v --daemon=p2pd .
