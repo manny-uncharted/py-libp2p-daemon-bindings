@@ -7,6 +7,9 @@ import pytest
 from async_exit_stack import AsyncExitStack
 from multiaddr import Multiaddr
 
+# Mark all tests in this module as integration tests
+pytestmark = pytest.mark.integration
+
 import p2pclient.pb.p2pd_pb2 as p2pd_pb
 from p2pclient.daemon import make_p2pd_pair_ip4, make_p2pd_pair_unix, try_until_success
 from p2pclient.exceptions import ControlFailure
